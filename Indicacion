@@ -1,0 +1,16 @@
+Este script solo instala webmin en Ubuntu 22.04, 24.04 y 26.04 LTS de 64 bits
+Para instalarlo simplemente escriba en la terminal de Ubuntu estando ya 
+como súoerusuario : 
+
+bash <(curl -sSL https://tinyurl.com/tuwebmin)
+
+Espero y conteste adecuadamete a lo que se le pregunta y al final
+de la instalación, en la URL de su navegador favorito escriba:
+
+https://localhost:10000
+
+Seguramente aparecerá una advertencia; es porque el certificado ssl que
+webmin usa es autofirmado, sin temos puede aceptar el riesgo y continuar.
+
+Como usuario debe escribir su usuario actual del root, la contraseña es
+la contraseña que usa en la terminal para pasar a estado root.
