@@ -22,14 +22,15 @@ if [ $(id -u) -ne 0 ]; then
     else
 
     # ------------ REVISAR INTERNET -------------
-	if [ "$(nmcli networking connectivity check)" = "full" ]; then
-    	echo -e "${AMARILLO}Hay conexión a internet${SINCOLOR}"
-		else
-    	exit 1
-	fi
+    if timeout 3 bash -c 'echo > /dev/tcp/1.1.1.3/53' 2>/dev/null; then
+      echo -e "${AMARILLO}Hay conexión a internet${SINCOLOR}"
+      else
+      echo -e "${ROJO}Sin conexión a internet${SINCOLOR}"
+      exit 1
+    fi
 
     # ------------ VERSIÓN SOPORTADA -------------
-	version=$(lsb_release -rs 2>/dev/null | grep -oP '^\d{2}\.\d{2}')
+version=$(. /etc/os-release && echo "$VERSION_ID")
 	declare -A version_soportada=(
     	["22.04"]=1
     	["24.04"]=1
@@ -58,7 +59,7 @@ if [ $(id -u) -ne 0 ]; then
 	apt-get -y -f install || true
 
 	# Sincronización de repositorios y reparación definitiva
-	apt-get update
+	apt-get update || true
 	apt-get -y --fix-broken \
     	-o Dpkg::Options::="--force-confdef" \
     	-o Dpkg::Options::="--force-confold" \
@@ -95,13 +96,18 @@ if [ $(id -u) -ne 0 ]; then
     cabextract              # Extrae archivos CAB
     file-roller             # Gestor de archivos comprimidos en GNOME
 	)
-	apt-get -y install "${paquetes[@]}"
+	apt-get -y install "${paquetes[@]}" || true
+
+  # Limpiar repositorio y clave previos (por si hubo intentos fallidos)
+  rm -f /etc/apt/sources.list.d/webmin*.list
+  rm -f /usr/share/keyrings/webmin*.gpg
+  apt-get update || true
 
 	# ---- AÑADIR REPOSITORIO OFICIAL DE WEBMIN ---
 	echo -e "${AMARILLO}Configurando repositorio oficial de Webmin...${SINCOLOR}"
-	curl -fsSL -o /tmp/webmin-setup-repo.sh https://raw.githubusercontent.com/webmin/webmin/master/webmin-setup-repo.sh
-	sh /tmp/webmin-setup-repo.sh
-	rm -f /tmp/webmin-setup-repo.sh
+	curl -fsSL -o /tmp/setup-repos.sh https://raw.githubusercontent.com/webmin/webmin/master/setup-repos.sh
+  sh /tmp/setup-repos.sh
+  rm -f /tmp/setup-repos.sh
 
 	# ---- INSTALAR WEBMIN ---
 	echo -e "${AMARILLO}Instalando Webmin...${SINCOLOR}"
@@ -229,8 +235,3 @@ MenuWebmin() {
 }
 
 MenuWebmin
-
-
-
-
-
